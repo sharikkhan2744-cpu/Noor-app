@@ -1,0 +1,435 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: deny everything by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+             (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidProject(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.projectType in ['AI_VIDEO', 'DOCUMENTARY', 'SCRIPT', 'AVATAR', 'TIMELINE'] &&
+             data.aspectRatio in ['16:9', '9:16', '1:1', '4:5'] &&
+             data.resolution in ['720p', '1080p', '4K'] &&
+             data.targetDurationSec is int && data.targetDurationSec >= 5 && data.targetDurationSec <= 7200 &&
+             data.fps is int && data.fps >= 24 && data.fps <= 60 &&
+             data.sacredProtection is bool &&
+             data.islamicMode is bool &&
+             data.status in ['DRAFT', 'GENERATING', 'READY', 'EXPORTED'] &&
+             data.scriptText is string && data.scriptText.size() <= 80000 &&
+             data.language is string && data.language.size() >= 2 && data.language.size() <= 32 &&
+             data.favorite is bool &&
+             data.sceneCount is int && data.sceneCount >= 0 && data.sceneCount <= 500 &&
+             data.chapterCount is int && data.chapterCount >= 0 && data.chapterCount <= 100 &&
+             (!('referencesText' in data) || (data.referencesText is string && data.referencesText.size() <= 20000)) &&
+             (!('conclusionText' in data) || (data.conclusionText is string && data.conclusionText.size() <= 10000)) &&
+             (!('creditsText' in data) || (data.creditsText is string && data.creditsText.size() <= 5000)) &&
+             (!('stylePreset' in data) || (data.stylePreset is string && data.stylePreset.size() <= 60)) &&
+             (!('colorShadePreset' in data) || (data.colorShadePreset is string && data.colorShadePreset.size() <= 60)) &&
+             (!('selectedVoiceId' in data) || (data.selectedVoiceId is string && data.selectedVoiceId.size() <= 128)) &&
+             (!('selectedVoiceName' in data) || (data.selectedVoiceName is string && data.selectedVoiceName.size() <= 160)) &&
+             (!('renderedVideoPath' in data) || (data.renderedVideoPath is string && data.renderedVideoPath.size() <= 500)) &&
+             (!('colorGradeJson' in data) || (data.colorGradeJson is string && data.colorGradeJson.size() <= 2000)) &&
+             (!('subtitleStyleJson' in data) || (data.subtitleStyleJson is string && data.subtitleStyleJson.size() <= 2000)) &&
+             (!('musicPreset' in data) || (data.musicPreset is string && data.musicPreset.size() <= 100)) &&
+             (!('voiceVolume' in data) || (data.voiceVolume is number && data.voiceVolume >= 0 && data.voiceVolume <= 3)) &&
+             (!('musicVolume' in data) || (data.musicVolume is number && data.musicVolume >= 0 && data.musicVolume <= 3)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidScene(data, userId, projectId) {
+      return data.userId is string && data.userId == userId &&
+             data.projectId is string && data.projectId == projectId &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.chapterTitle is string && data.chapterTitle.size() <= 160 &&
+             data.orderIndex is int && data.orderIndex >= 0 && data.orderIndex <= 1000 &&
+             data.narrationText is string && data.narrationText.size() <= 10000 &&
+             data.visualPrompt is string && data.visualPrompt.size() <= 4000 &&
+             data.negativePrompt is string && data.negativePrompt.size() <= 1000 &&
+             data.cameraMotion is string && data.cameraMotion.size() >= 1 && data.cameraMotion.size() <= 40 &&
+             data.transitionType is string && data.transitionType.size() >= 1 && data.transitionType.size() <= 40 &&
+             data.durationSec is int && data.durationSec >= 1 && data.durationSec <= 120 &&
+             data.subtitleText is string && data.subtitleText.size() <= 5000 &&
+             (!('imagePath' in data) || (data.imagePath is string && data.imagePath.size() <= 500)) &&
+             (!('audioPath' in data) || (data.audioPath is string && data.audioPath.size() <= 500)) &&
+             (!('mediaType' in data) || (data.mediaType in ['IMAGE', 'VIDEO', 'TEXT'])) &&
+             (!('videoPath' in data) || (data.videoPath is string && data.videoPath.size() <= 500)) &&
+             (!('trimStartMs' in data) || (data.trimStartMs is int && data.trimStartMs >= 0 && data.trimStartMs <= 7200000)) &&
+             (!('trimEndMs' in data) || (data.trimEndMs is int && data.trimEndMs >= 0 && data.trimEndMs <= 7200000)) &&
+             (!('rotationDeg' in data) || (data.rotationDeg is int && data.rotationDeg >= 0 && data.rotationDeg <= 360)) &&
+             (!('cropSpec' in data) || (data.cropSpec is string && data.cropSpec.size() <= 80)) &&
+             (!('scaleFactor' in data) || (data.scaleFactor is number && data.scaleFactor >= 0.1 && data.scaleFactor <= 5)) &&
+             (!('volume' in data) || (data.volume is number && data.volume >= 0 && data.volume <= 3)) &&
+             (!('fadeInMs' in data) || (data.fadeInMs is int && data.fadeInMs >= 0 && data.fadeInMs <= 30000)) &&
+             (!('fadeOutMs' in data) || (data.fadeOutMs is int && data.fadeOutMs >= 0 && data.fadeOutMs <= 30000)) &&
+             (!('colorGradeJson' in data) || (data.colorGradeJson is string && data.colorGradeJson.size() <= 2000)) &&
+             (!('textOverlay' in data) || (data.textOverlay is string && data.textOverlay.size() <= 1000)) &&
+             (!('voiceProfileId' in data) || (data.voiceProfileId is string && data.voiceProfileId.size() <= 128)) &&
+             data.status in ['PENDING', 'READY', 'FAILED'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidMediaAsset(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.assetType in ['IMAGE', 'VIDEO', 'AUDIO', 'SUBTITLE', 'SCRIPT'] &&
+             data.localPath is string && data.localPath.size() <= 500 &&
+             data.mimeType is string && data.mimeType.size() >= 1 && data.mimeType.size() <= 80 &&
+             data.aspectRatio is string && data.aspectRatio.size() >= 1 && data.aspectRatio.size() <= 20 &&
+             data.durationSec is int && data.durationSec >= 0 && data.durationSec <= 7200 &&
+             data.sizeBytes is int && data.sizeBytes >= 0 && data.sizeBytes <= 2000000000 &&
+             data.sourceProvider is string && data.sourceProvider.size() >= 1 && data.sourceProvider.size() <= 100 &&
+             data.licenseNote is string && data.licenseNote.size() <= 300 &&
+             (!('projectId' in data) || (data.projectId is string && data.projectId.size() <= 128)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidBookmark(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.itemType in ['QURAN_AYAH', 'HADITH'] &&
+             data.collectionName is string && data.collectionName.size() >= 1 && data.collectionName.size() <= 100 &&
+             data.referenceKey is string && data.referenceKey.size() >= 1 && data.referenceKey.size() <= 100 &&
+             data.arabicText is string && data.arabicText.size() <= 5000 &&
+             data.translationText is string && data.translationText.size() <= 5000 &&
+             data.sourceName is string && data.sourceName.size() >= 1 && data.sourceName.size() <= 200 &&
+             (!('gradeNote' in data) || (data.gradeNote is string && data.gradeNote.size() <= 300)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSettings(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.language is string && data.language.size() >= 2 && data.language.size() <= 32 &&
+             data.defaultAspectRatio is string && data.defaultAspectRatio.size() >= 2 && data.defaultAspectRatio.size() <= 20 &&
+             data.defaultResolution is string && data.defaultResolution.size() >= 2 && data.defaultResolution.size() <= 20 &&
+             data.defaultDurationSec is int && data.defaultDurationSec >= 3 && data.defaultDurationSec <= 3600 &&
+             data.defaultVoice is string && data.defaultVoice.size() >= 1 && data.defaultVoice.size() <= 80 &&
+             data.subtitleFontSize is int && data.subtitleFontSize >= 10 && data.subtitleFontSize <= 48 &&
+             data.subtitlePosition is string && data.subtitlePosition.size() >= 1 && data.subtitlePosition.size() <= 30 &&
+             data.sacredProtection is bool &&
+             data.autoSave is bool &&
+             data.offlineWifiOnly is bool &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidExport(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.projectId is string && data.projectId.size() >= 1 && data.projectId.size() <= 128 &&
+             data.projectTitle is string && data.projectTitle.size() >= 1 && data.projectTitle.size() <= 160 &&
+             data.format is string && data.format.size() >= 1 && data.format.size() <= 20 &&
+             data.resolution is string && data.resolution.size() >= 1 && data.resolution.size() <= 20 &&
+             data.durationSec is int && data.durationSec >= 0 && data.durationSec <= 7200 &&
+             data.localPath is string && data.localPath.size() <= 500 &&
+             data.status in ['COMPLETED', 'FAILED'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    function isValidPersonalNote(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.category in ['QURAN', 'TAFSIR', 'HADITH', 'HISTORY', 'RESEARCH', 'GENERAL'] &&
+             data.referenceKey is string && data.referenceKey.size() <= 160 &&
+             data.content is string && data.content.size() >= 1 && data.content.size() <= 20000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidResearchEntry(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.query is string && data.query.size() >= 1 && data.query.size() <= 500 &&
+             data.entryType in ['ISLAMIC_RESEARCH', 'HISTORICAL_DOSSIER', 'FACT_CHECK'] &&
+             data.summaryText is string && data.summaryText.size() >= 1 && data.summaryText.size() <= 25000 &&
+             data.sourcesText is string && data.sourcesText.size() <= 10000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    function isValidVoiceProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+             data.language is string && data.language.size() >= 1 && data.language.size() <= 40 &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 60 &&
+             data.description is string && data.description.size() <= 500 &&
+             data.sampleAudioPath is string && data.sampleAudioPath.size() <= 500 &&
+             data.providerType in ['ON_DEVICE_TTS', 'USER_UPLOAD', 'ELEVENLABS', 'OPENAI_TTS'] &&
+             data.externalVoiceId is string && data.externalVoiceId.size() <= 160 &&
+             data.pitch is number && data.pitch >= 0.4 && data.pitch <= 2.5 &&
+             data.speed is number && data.speed >= 0.4 && data.speed <= 2.5 &&
+             data.favorite is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidAiConversation(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.modelId is string && data.modelId.size() >= 1 && data.modelId.size() <= 80 &&
+             data.lastMessagePreview is string && data.lastMessagePreview.size() <= 400 &&
+             data.messageCount is int && data.messageCount >= 0 && data.messageCount <= 10000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidAiMessage(data, userId, convId) {
+      return data.userId is string && data.userId == userId &&
+             data.conversationId is string && data.conversationId == convId &&
+             data.role in ['USER', 'ASSISTANT'] &&
+             data.content is string && data.content.size() >= 1 && data.content.size() <= 40000 &&
+             data.citationsText is string && data.citationsText.size() <= 8000 &&
+             data.modelUsed is string && data.modelUsed.size() <= 80 &&
+             (!('attachmentName' in data) || (data.attachmentName is string && data.attachmentName.size() <= 200)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    function isValidHadithVerification(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.projectId is string && data.projectId.size() <= 128 &&
+             data.originalPrompt is string && data.originalPrompt.size() <= 4000 &&
+             data.verifiedClaim is string && data.verifiedClaim.size() <= 4000 &&
+             data.verificationEvidence is string && data.verificationEvidence.size() <= 12000 &&
+             data.correctedNarration is string && data.correctedNarration.size() <= 12000 &&
+             data.finalScript is string && data.finalScript.size() <= 80000 &&
+             data.status in ['AUTHENTIC', 'HASAN', 'WEAK_DAIF', 'DISPUTED', 'UNVERIFIED', 'NO_HADITH_CLAIMS'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'displayName', 'photoUrl', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming(), userId);
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserProfile(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoUrl', 'updatedAt']);
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /projects/{projectId} {
+        allow get: if isOwner(userId) && isValidId(projectId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(projectId) &&
+                         incoming().keys().hasAll(['userId', 'title', 'projectType', 'aspectRatio', 'resolution', 'targetDurationSec', 'fps', 'sacredProtection', 'islamicMode', 'status', 'scriptText', 'language', 'favorite', 'sceneCount', 'chapterCount', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'title', 'projectType', 'aspectRatio', 'resolution', 'targetDurationSec', 'fps', 'sacredProtection', 'islamicMode', 'status', 'scriptText', 'language', 'favorite', 'sceneCount', 'chapterCount', 'referencesText', 'conclusionText', 'creditsText', 'stylePreset', 'colorShadePreset', 'selectedVoiceId', 'selectedVoiceName', 'renderedVideoPath', 'colorGradeJson', 'subtitleStyleJson', 'musicPreset', 'voiceVolume', 'musicVolume', 'createdAt', 'updatedAt']) &&
+                         isValidProject(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(projectId) &&
+                         isValidProject(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'projectType', 'aspectRatio', 'resolution', 'targetDurationSec', 'fps', 'sacredProtection', 'islamicMode', 'status', 'scriptText', 'language', 'favorite', 'sceneCount', 'chapterCount', 'referencesText', 'conclusionText', 'creditsText', 'stylePreset', 'colorShadePreset', 'selectedVoiceId', 'selectedVoiceName', 'renderedVideoPath', 'colorGradeJson', 'subtitleStyleJson', 'musicPreset', 'voiceVolume', 'musicVolume', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(projectId);
+
+        match /scenes/{sceneId} {
+          allow get: if isOwner(userId) && isValidId(projectId) && isValidId(sceneId);
+          allow list: if isOwner(userId) && isValidId(projectId);
+          allow create: if isOwner(userId) &&
+                           isValidId(projectId) &&
+                           isValidId(sceneId) &&
+                           exists(/databases/$(database)/documents/users/$(userId)/projects/$(projectId)) &&
+                           incoming().keys().hasAll(['userId', 'projectId', 'title', 'chapterTitle', 'orderIndex', 'narrationText', 'visualPrompt', 'negativePrompt', 'cameraMotion', 'transitionType', 'durationSec', 'subtitleText', 'status', 'createdAt', 'updatedAt']) &&
+                           incoming().keys().hasOnly(['userId', 'projectId', 'title', 'chapterTitle', 'orderIndex', 'narrationText', 'visualPrompt', 'negativePrompt', 'cameraMotion', 'transitionType', 'durationSec', 'subtitleText', 'imagePath', 'audioPath', 'mediaType', 'videoPath', 'trimStartMs', 'trimEndMs', 'rotationDeg', 'cropSpec', 'scaleFactor', 'volume', 'fadeInMs', 'fadeOutMs', 'colorGradeJson', 'textOverlay', 'voiceProfileId', 'status', 'createdAt', 'updatedAt']) &&
+                           isValidScene(incoming(), userId, projectId);
+          allow update: if isOwner(userId) &&
+                           isValidId(projectId) &&
+                           isValidId(sceneId) &&
+                           isValidScene(incoming(), userId, projectId) &&
+                           incoming().userId == existing().userId &&
+                           incoming().projectId == existing().projectId &&
+                           incoming().createdAt == existing().createdAt &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['title', 'chapterTitle', 'orderIndex', 'narrationText', 'visualPrompt', 'negativePrompt', 'cameraMotion', 'transitionType', 'durationSec', 'subtitleText', 'imagePath', 'audioPath', 'mediaType', 'videoPath', 'trimStartMs', 'trimEndMs', 'rotationDeg', 'cropSpec', 'scaleFactor', 'volume', 'fadeInMs', 'fadeOutMs', 'colorGradeJson', 'textOverlay', 'voiceProfileId', 'status', 'updatedAt']);
+          allow delete: if isOwner(userId) && isValidId(projectId) && isValidId(sceneId);
+        }
+      }
+
+      match /media_assets/{assetId} {
+        allow get: if isOwner(userId) && isValidId(assetId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(assetId) &&
+                         incoming().keys().hasAll(['userId', 'title', 'assetType', 'localPath', 'mimeType', 'aspectRatio', 'durationSec', 'sizeBytes', 'sourceProvider', 'licenseNote', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'title', 'assetType', 'localPath', 'mimeType', 'aspectRatio', 'durationSec', 'sizeBytes', 'sourceProvider', 'licenseNote', 'projectId', 'createdAt', 'updatedAt']) &&
+                         isValidMediaAsset(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(assetId) &&
+                         isValidMediaAsset(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'localPath', 'durationSec', 'sizeBytes', 'projectId', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(assetId);
+      }
+
+      match /bookmarks/{bookmarkId} {
+        allow get: if isOwner(userId) && isValidId(bookmarkId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(bookmarkId) &&
+                         incoming().keys().hasAll(['userId', 'itemType', 'collectionName', 'referenceKey', 'arabicText', 'translationText', 'sourceName', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'itemType', 'collectionName', 'referenceKey', 'arabicText', 'translationText', 'sourceName', 'gradeNote', 'createdAt', 'updatedAt']) &&
+                         isValidBookmark(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(bookmarkId) &&
+                         isValidBookmark(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['translationText', 'sourceName', 'gradeNote', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(bookmarkId);
+      }
+
+      match /settings/{settingId} {
+        allow get: if isOwner(userId) && isValidId(settingId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(settingId) &&
+                         incoming().keys().hasAll(['userId', 'language', 'defaultAspectRatio', 'defaultResolution', 'defaultDurationSec', 'defaultVoice', 'subtitleFontSize', 'subtitlePosition', 'sacredProtection', 'autoSave', 'offlineWifiOnly', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'language', 'defaultAspectRatio', 'defaultResolution', 'defaultDurationSec', 'defaultVoice', 'subtitleFontSize', 'subtitlePosition', 'sacredProtection', 'autoSave', 'offlineWifiOnly', 'updatedAt']) &&
+                         isValidSettings(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(settingId) &&
+                         isValidSettings(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['language', 'defaultAspectRatio', 'defaultResolution', 'defaultDurationSec', 'defaultVoice', 'subtitleFontSize', 'subtitlePosition', 'sacredProtection', 'autoSave', 'offlineWifiOnly', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(settingId);
+      }
+
+      match /exports/{exportId} {
+        allow get: if isOwner(userId) && isValidId(exportId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(exportId) &&
+                         incoming().keys().hasAll(['userId', 'projectId', 'projectTitle', 'format', 'resolution', 'durationSec', 'localPath', 'status', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'projectId', 'projectTitle', 'format', 'resolution', 'durationSec', 'localPath', 'status', 'createdAt']) &&
+                         isValidExport(incoming(), userId);
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(exportId);
+      }
+
+      match /notes/{noteId} {
+        allow get: if isOwner(userId) && isValidId(noteId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(noteId) &&
+                         incoming().keys().hasAll(['userId', 'title', 'category', 'referenceKey', 'content', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'title', 'category', 'referenceKey', 'content', 'createdAt', 'updatedAt']) &&
+                         isValidPersonalNote(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(noteId) &&
+                         isValidPersonalNote(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'category', 'referenceKey', 'content', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(noteId);
+      }
+
+      match /research_history/{entryId} {
+        allow get: if isOwner(userId) && isValidId(entryId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(entryId) &&
+                         incoming().keys().hasAll(['userId', 'query', 'entryType', 'summaryText', 'sourcesText', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'query', 'entryType', 'summaryText', 'sourcesText', 'createdAt']) &&
+                         isValidResearchEntry(incoming(), userId);
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(entryId);
+      }
+
+      match /voice_profiles/{voiceId} {
+        allow get: if isOwner(userId) && isValidId(voiceId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(voiceId) &&
+                         incoming().keys().hasAll(['userId', 'name', 'language', 'category', 'description', 'sampleAudioPath', 'providerType', 'externalVoiceId', 'pitch', 'speed', 'favorite', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'name', 'language', 'category', 'description', 'sampleAudioPath', 'providerType', 'externalVoiceId', 'pitch', 'speed', 'favorite', 'createdAt', 'updatedAt']) &&
+                         isValidVoiceProfile(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(voiceId) &&
+                         isValidVoiceProfile(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'language', 'category', 'description', 'sampleAudioPath', 'providerType', 'externalVoiceId', 'pitch', 'speed', 'favorite', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(voiceId);
+      }
+
+      match /ai_conversations/{convId} {
+        allow get: if isOwner(userId) && isValidId(convId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(convId) &&
+                         incoming().keys().hasAll(['userId', 'title', 'modelId', 'lastMessagePreview', 'messageCount', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'title', 'modelId', 'lastMessagePreview', 'messageCount', 'createdAt', 'updatedAt']) &&
+                         isValidAiConversation(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(convId) &&
+                         isValidAiConversation(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'modelId', 'lastMessagePreview', 'messageCount', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(convId);
+
+        match /messages/{msgId} {
+          allow get: if isOwner(userId) && isValidId(convId) && isValidId(msgId);
+          allow list: if isOwner(userId) && isValidId(convId);
+          allow create: if isOwner(userId) &&
+                           isValidId(convId) &&
+                           isValidId(msgId) &&
+                           exists(/databases/$(database)/documents/users/$(userId)/ai_conversations/$(convId)) &&
+                           incoming().keys().hasAll(['userId', 'conversationId', 'role', 'content', 'citationsText', 'modelUsed', 'createdAt']) &&
+                           incoming().keys().hasOnly(['userId', 'conversationId', 'role', 'content', 'citationsText', 'modelUsed', 'attachmentName', 'createdAt']) &&
+                           isValidAiMessage(incoming(), userId, convId);
+          allow update: if false;
+          allow delete: if isOwner(userId) && isValidId(convId) && isValidId(msgId);
+        }
+      }
+
+      match /hadith_verifications/{recordId} {
+        allow get: if isOwner(userId) && isValidId(recordId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(recordId) &&
+                         incoming().keys().hasAll(['userId', 'projectId', 'originalPrompt', 'verifiedClaim', 'verificationEvidence', 'correctedNarration', 'finalScript', 'status', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'projectId', 'originalPrompt', 'verifiedClaim', 'verificationEvidence', 'correctedNarration', 'finalScript', 'status', 'createdAt']) &&
+                         isValidHadithVerification(incoming(), userId);
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(recordId);
+      }
+    }
+  }
+}

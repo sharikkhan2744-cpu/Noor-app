@@ -1,0 +1,321 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated creator profile metadata without PII.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string", "description": "Display name" },
+        "photoUrl": { "type": "string", "description": "Optional avatar URL" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": ["userId", "displayName", "createdAt", "updatedAt"]
+    },
+    "StudioProject": {
+      "title": "StudioProject",
+      "description": "AI video, documentary, script, avatar, or timeline project.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "projectType": { "type": "string", "enum": ["AI_VIDEO", "DOCUMENTARY", "SCRIPT", "AVATAR", "TIMELINE"] },
+        "aspectRatio": { "type": "string", "enum": ["16:9", "9:16", "1:1", "4:5"] },
+        "resolution": { "type": "string", "enum": ["720p", "1080p", "4K"] },
+        "targetDurationSec": { "type": "integer" },
+        "fps": { "type": "integer" },
+        "sacredProtection": { "type": "boolean" },
+        "islamicMode": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["DRAFT", "GENERATING", "READY", "EXPORTED"] },
+        "scriptText": { "type": "string" },
+        "language": { "type": "string" },
+        "favorite": { "type": "boolean" },
+        "sceneCount": { "type": "integer" },
+        "chapterCount": { "type": "integer" },
+        "referencesText": { "type": "string" },
+        "conclusionText": { "type": "string" },
+        "creditsText": { "type": "string" },
+        "stylePreset": { "type": "string" },
+        "colorShadePreset": { "type": "string" },
+        "selectedVoiceId": { "type": "string" },
+        "selectedVoiceName": { "type": "string" },
+        "renderedVideoPath": { "type": "string" },
+        "colorGradeJson": { "type": "string" },
+        "subtitleStyleJson": { "type": "string" },
+        "musicPreset": { "type": "string" },
+        "voiceVolume": { "type": "number" },
+        "musicVolume": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "projectType", "aspectRatio", "resolution", "targetDurationSec", "fps", "sacredProtection", "islamicMode", "status", "scriptText", "language", "favorite", "sceneCount", "chapterCount", "createdAt", "updatedAt"]
+    },
+    "ProjectScene": {
+      "title": "ProjectScene",
+      "description": "Individual scene inside a project timeline or documentary.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "chapterTitle": { "type": "string" },
+        "orderIndex": { "type": "integer" },
+        "narrationText": { "type": "string" },
+        "visualPrompt": { "type": "string" },
+        "negativePrompt": { "type": "string" },
+        "cameraMotion": { "type": "string" },
+        "transitionType": { "type": "string" },
+        "durationSec": { "type": "integer" },
+        "subtitleText": { "type": "string" },
+        "imagePath": { "type": "string" },
+        "audioPath": { "type": "string" },
+        "mediaType": { "type": "string", "enum": ["IMAGE", "VIDEO", "TEXT"] },
+        "videoPath": { "type": "string" },
+        "trimStartMs": { "type": "integer" },
+        "trimEndMs": { "type": "integer" },
+        "rotationDeg": { "type": "integer" },
+        "cropSpec": { "type": "string" },
+        "scaleFactor": { "type": "number" },
+        "volume": { "type": "number" },
+        "fadeInMs": { "type": "integer" },
+        "fadeOutMs": { "type": "integer" },
+        "colorGradeJson": { "type": "string" },
+        "textOverlay": { "type": "string" },
+        "voiceProfileId": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "READY", "FAILED"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "projectId", "title", "chapterTitle", "orderIndex", "narrationText", "visualPrompt", "negativePrompt", "cameraMotion", "transitionType", "durationSec", "subtitleText", "status", "createdAt", "updatedAt"]
+    },
+    "MediaAsset": {
+      "title": "MediaAsset",
+      "description": "Metadata for generated or imported media stored locally.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "assetType": { "type": "string", "enum": ["IMAGE", "VIDEO", "AUDIO", "SUBTITLE", "SCRIPT"] },
+        "localPath": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "aspectRatio": { "type": "string" },
+        "durationSec": { "type": "integer" },
+        "sizeBytes": { "type": "integer" },
+        "sourceProvider": { "type": "string" },
+        "licenseNote": { "type": "string" },
+        "projectId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "assetType", "localPath", "mimeType", "aspectRatio", "durationSec", "sizeBytes", "sourceProvider", "licenseNote", "createdAt", "updatedAt"]
+    },
+    "IslamicBookmark": {
+      "title": "IslamicBookmark",
+      "description": "Bookmarked Quran Ayah or Hadith reference.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "itemType": { "type": "string", "enum": ["QURAN_AYAH", "HADITH"] },
+        "collectionName": { "type": "string" },
+        "referenceKey": { "type": "string" },
+        "arabicText": { "type": "string" },
+        "translationText": { "type": "string" },
+        "sourceName": { "type": "string" },
+        "gradeNote": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "itemType", "collectionName", "referenceKey", "arabicText", "translationText", "sourceName", "createdAt", "updatedAt"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "Creator studio default preferences and protection toggles.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "language": { "type": "string" },
+        "defaultAspectRatio": { "type": "string" },
+        "defaultResolution": { "type": "string" },
+        "defaultDurationSec": { "type": "integer" },
+        "defaultVoice": { "type": "string" },
+        "subtitleFontSize": { "type": "integer" },
+        "subtitlePosition": { "type": "string" },
+        "sacredProtection": { "type": "boolean" },
+        "autoSave": { "type": "boolean" },
+        "offlineWifiOnly": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "language", "defaultAspectRatio", "defaultResolution", "defaultDurationSec", "defaultVoice", "subtitleFontSize", "subtitlePosition", "sacredProtection", "autoSave", "offlineWifiOnly", "updatedAt"]
+    },
+    "ExportRecord": {
+      "title": "ExportRecord",
+      "description": "History of rendered MP4, SRT/VTT, or WAV exports.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "projectTitle": { "type": "string" },
+        "format": { "type": "string" },
+        "resolution": { "type": "string" },
+        "durationSec": { "type": "integer" },
+        "localPath": { "type": "string" },
+        "status": { "type": "string", "enum": ["COMPLETED", "FAILED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "projectId", "projectTitle", "format", "resolution", "durationSec", "localPath", "status", "createdAt"]
+    },
+    "PersonalNote": {
+      "title": "PersonalNote",
+      "description": "Personal study notes linked to Quran, Tafsir, Hadith, History, or Research.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string", "enum": ["QURAN", "TAFSIR", "HADITH", "HISTORY", "RESEARCH", "GENERAL"] },
+        "referenceKey": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "category", "referenceKey", "content", "createdAt", "updatedAt"]
+    },
+    "SavedResearchEntry": {
+      "title": "SavedResearchEntry",
+      "description": "Saved 7-tier scholarly research, fact-check, or historical analysis summary.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "query": { "type": "string" },
+        "entryType": { "type": "string", "enum": ["ISLAMIC_RESEARCH", "HISTORICAL_DOSSIER", "FACT_CHECK"] },
+        "summaryText": { "type": "string" },
+        "sourcesText": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "query", "entryType", "summaryText", "sourcesText", "createdAt"]
+    },
+    "VoiceProfile": {
+      "title": "VoiceProfile",
+      "description": "Unlimited custom or external voice profiles.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "language": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "sampleAudioPath": { "type": "string" },
+        "providerType": { "type": "string", "enum": ["ON_DEVICE_TTS", "USER_UPLOAD", "ELEVENLABS", "OPENAI_TTS"] },
+        "externalVoiceId": { "type": "string" },
+        "pitch": { "type": "number" },
+        "speed": { "type": "number" },
+        "favorite": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "language", "category", "description", "sampleAudioPath", "providerType", "externalVoiceId", "pitch", "speed", "favorite", "createdAt", "updatedAt"]
+    },
+    "AiChatConversation": {
+      "title": "AiChatConversation",
+      "description": "GPT Islamic Studio AI Assistant chat conversation header.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "modelId": { "type": "string" },
+        "lastMessagePreview": { "type": "string" },
+        "messageCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "modelId", "lastMessagePreview", "messageCount", "createdAt", "updatedAt"]
+    },
+    "AiChatMessageDoc": {
+      "title": "AiChatMessageDoc",
+      "description": "Individual message inside an AI assistant conversation.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "conversationId": { "type": "string" },
+        "role": { "type": "string", "enum": ["USER", "ASSISTANT"] },
+        "content": { "type": "string" },
+        "citationsText": { "type": "string" },
+        "modelUsed": { "type": "string" },
+        "attachmentName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "conversationId", "role", "content", "citationsText", "modelUsed", "createdAt"]
+    },
+    "HadithVerificationRecord": {
+      "title": "HadithVerificationRecord",
+      "description": "Background Hadith Truth Shield verification record stored cleanly in 5 fields.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "originalPrompt": { "type": "string" },
+        "verifiedClaim": { "type": "string" },
+        "verificationEvidence": { "type": "string" },
+        "correctedNarration": { "type": "string" },
+        "finalScript": { "type": "string" },
+        "status": { "type": "string", "enum": ["AUTHENTIC", "HASAN", "WEAK_DAIF", "DISPUTED", "UNVERIFIED", "NO_HADITH_CLAIMS"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "projectId", "originalPrompt", "verifiedClaim", "verificationEvidence", "correctedNarration", "finalScript", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile document"
+    },
+    "/users/{userId}/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/StudioProject" },
+      "description": "User studio projects"
+    },
+    "/users/{userId}/projects/{projectId}/scenes/{sceneId}": {
+      "schema": { "$ref": "#/entities/ProjectScene" },
+      "description": "Scenes belonging to a project"
+    },
+    "/users/{userId}/media_assets/{assetId}": {
+      "schema": { "$ref": "#/entities/MediaAsset" },
+      "description": "Generated and uploaded media assets metadata"
+    },
+    "/users/{userId}/bookmarks/{bookmarkId}": {
+      "schema": { "$ref": "#/entities/IslamicBookmark" },
+      "description": "Bookmarked Quran Ayahs and Hadith"
+    },
+    "/users/{userId}/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/UserSettings" },
+      "description": "User studio preferences"
+    },
+    "/users/{userId}/exports/{exportId}": {
+      "schema": { "$ref": "#/entities/ExportRecord" },
+      "description": "Export history records"
+    },
+    "/users/{userId}/notes/{noteId}": {
+      "schema": { "$ref": "#/entities/PersonalNote" },
+      "description": "User personal study and research notes"
+    },
+    "/users/{userId}/research_history/{entryId}": {
+      "schema": { "$ref": "#/entities/SavedResearchEntry" },
+      "description": "User saved research and historical queries"
+    },
+    "/users/{userId}/voice_profiles/{voiceId}": {
+      "schema": { "$ref": "#/entities/VoiceProfile" },
+      "description": "Unlimited custom and external voice profiles"
+    },
+    "/users/{userId}/ai_conversations/{convId}": {
+      "schema": { "$ref": "#/entities/AiChatConversation" },
+      "description": "AI Assistant conversation threads"
+    },
+    "/users/{userId}/ai_conversations/{convId}/messages/{msgId}": {
+      "schema": { "$ref": "#/entities/AiChatMessageDoc" },
+      "description": "AI Assistant chat messages"
+    },
+    "/users/{userId}/hadith_verifications/{recordId}": {
+      "schema": { "$ref": "#/entities/HadithVerificationRecord" },
+      "description": "Hadith Truth Shield verification logs"
+    }
+  }
+}

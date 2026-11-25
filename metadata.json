@@ -1,0 +1,6 @@
+{
+  "name": "Islamic Studio AI",
+  "description": "All-in-one Islamic knowledge, scholarly research, Tafsir, Hadith, historical archive, and AI video/documentary/audio creator studio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
